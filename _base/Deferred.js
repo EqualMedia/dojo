@@ -148,6 +148,7 @@ dojo.provide("dojo._base.Deferred");
 	//		handle the asynchronous case.
 		var result, finished, isError, head, nextListener;
 		var promise = this.promise = {};
+		var _this = this;
 		
 		function complete(value){
 			if(finished){
@@ -167,17 +168,24 @@ dojo.provide("dojo._base.Deferred");
 				}
 				var func = (isError ? listener.error : listener.resolved);
 				if (func) {
-					try {
+					var invokeFunc = function(){
 						var newResult = func(result);
 						if (newResult && typeof newResult.then === "function") {
 							newResult.then(listener.deferred.resolve, listener.deferred.reject);
-							continue;
+							return true;
 						}
 						var unchanged = mutated && newResult === undefined;
 						listener.deferred[unchanged && isError ? "reject" : "resolve"](unchanged ? result : newResult);
-					}
-					catch (e) {
-						listener.deferred.reject(e);
+					};
+					if(dojo.config.deferredDebug){
+						if(invokeFunc()){ continue; }
+					}else{
+						try {
+							if(invokeFunc()){ continue; }
+						}
+						catch (e) {
+							listener.deferred.reject(e);
+						}
 					}
 				}else {
 					if(isError){
@@ -192,8 +200,8 @@ dojo.provide("dojo._base.Deferred");
 		var resolve = this.resolve = this.callback = function(value){
 			// summary:
 			//		Fulfills the Deferred instance successfully with the provide value
-			this.fired = 0;
-			this.results = [value, null];
+			_this.fired = 0;
+			_this.results = [value, null];
 			complete(value);
 		};
 		
@@ -203,7 +211,7 @@ dojo.provide("dojo._base.Deferred");
 			// summary:
 			//		Fulfills the Deferred instance as an error with the provided error 
 			isError = true;
-			this.fired = 1;
+			_this.fired = 1;
 			complete(error);
 			if(!error || error.log !== false){
 				(dojo.config.deferredOnError || function(x){ console.error(x); })(error);
@@ -271,14 +279,16 @@ dojo.provide("dojo._base.Deferred");
 			// summary:
 			//		Cancels the asynchronous operation
 			if(!finished){
-				var error = canceller && canceller(this);
-				if (!(error instanceof Error)) {
-					error = new Error(error);
+				var error = canceller && canceller(_this);
+				if(!finished){
+					if (!(error instanceof Error)) {
+						error = new Error(error);
+					}
+					error.log = false;
+					reject(error);
 				}
-				error.log = false;
-				reject(error);
 			}
-		}
+		};
 		freeze(promise);
 	};
 	dojo.extend(dojo.Deferred, {
