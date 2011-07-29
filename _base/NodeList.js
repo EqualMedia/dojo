@@ -5,7 +5,7 @@ define(["./kernel", "./lang", "../on", "../has", "./array", "./html"], function(
   //    This module defines dojo.NodeList.
 	has.add("array-extensible", function(){
 		// test to see if we can extend an array (not supported in old IE)
-		return lang.delegate([], {length: 1}).length == 1;
+		return lang.delegate([], {length: 1}).length == 1 && !has("bug-for-in-skips-shadowed");
 	});
 	
 	var ap = Array.prototype, aps = ap.slice, apc = ap.concat, forEach = dojo.forEach;
