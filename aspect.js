@@ -117,6 +117,10 @@ define([], function(){
 			// create the remove handler
 			signal = {
 				remove: function(){
+					if(signal.queued){
+						signal.removed = true;
+						return;
+					}
 					var previous = signal.previous;
 					var next = signal.next;
 					if(!next && !previous){
@@ -139,13 +143,18 @@ define([], function(){
 		if(previous && !around){
 			if(type == "after"){
 				// add the listener to the end of the list
-				var next = previous;
-				while(next){
-					previous = next;
-					next = next.next;
+				if(dispatcher.afterAdviseQueue){
+					signal.queued = true;
+					dispatcher.afterAdviseQueue.push(signal);
+				}else{
+					var next = previous;
+					while(next){
+						previous = next;
+						next = next.next;
+					}
+					previous.next = signal;
+					signal.previous = previous;
 				}
-				previous.next = signal;
-				signal.previous = previous;
 			}else if(type == "before"){
 				// add to beginning
 				dispatcher[type] = signal;
@@ -177,11 +186,32 @@ define([], function(){
 					}
 					// after advice
 					var after = dispatcher.after;
+					dispatcher.afterAdviseQueue = [];
 					while(after){
 						results = after.receiveArguments ? after.advice.apply(this, args) || results :
 								after.advice.call(this, results);
 						after = after.next;
 					}
+					if(dispatcher.afterAdviseQueue.length){
+						var previous = dispatcher.after;
+						var next = previous;
+						while(next){
+							previous = next;
+							next = next.next;
+						}
+						if(!previous){
+							previous = dispatcher.after = dispatcher.afterAdviseQueue.shift();
+						}
+						for(var q = dispatcher.afterAdviseQueue, signal; signal = q.shift();){
+							if(!signal.removed){
+								delete signal.queued;
+								previous.next = signal;
+								signal.previous = previous;
+								previous = signal;
+							}
+						}
+					}
+					delete dispatcher.afterAdviseQueue;
 					return results;
 				};
 				if(existing){
