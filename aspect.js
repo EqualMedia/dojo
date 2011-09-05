@@ -186,7 +186,7 @@ define([], function(){
 								after.advice.call(this, results);
 						after = after.next;
 					}
-					if(dispatcher.afterAdviseQueue.length){
+					if(dispatcher.afterAdviseQueue && dispatcher.afterAdviseQueue.length){
 						var previous = dispatcher.after;
 						var next = previous;
 						while(next){
