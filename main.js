@@ -24,7 +24,7 @@ define([
 	// console guarnanteed at a particular spot in an app, either set config.has["dojo-firebug"] true before
 	// loading dojo.js or explicitly include dojo/_firebug/firebug in a dependency list.
 	if(dojo.config.isDebug){
-		require(["./_firebug/firebug"]);
+		require(["dojo/_firebug/firebug"]);
 	}
 
 	// dojoConfig.require is deprecated; use the loader configuration property deps
