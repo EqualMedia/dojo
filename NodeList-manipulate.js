@@ -1,9 +1,10 @@
-define(["./_base/NodeList", "./_base/lang", "./_base/array", "./query", "./dom-construct"], function(NodeList, lang, array, dquery, construct) {
+define(["./query", "./_base/lang", "./_base/array", "./dom-construct", "./NodeList-dom"], function(dquery, lang, array, construct) {
 	// module:
 	//		dojo/NodeList-manipulate
 	// summary:
 	//		TODOC
 
+var NodeList = dquery.NodeList;
 
 /*=====
 dojo["NodeList-manipulate"] = {
@@ -12,7 +13,7 @@ dojo["NodeList-manipulate"] = {
 };
 
 // doc alias helpers:
-var lang = dojo, NodeList = dojo.NodeList;
+NodeList = dojo.NodeList;
 =====*/
 
 //TODO: add a way to parse for widgets in the injected markup?

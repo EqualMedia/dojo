@@ -13,6 +13,7 @@ define([
 	"dojo/tests/currency",
 	"dojo/tests/AdapterRegistry",
 	"dojo/tests/regexp",
+	"dojo/tests/store",
 	"dojo/tests/string",
 	"dojo/tests/colors",
 	"dojo/tests/DeferredList",
@@ -31,5 +32,6 @@ define([
 	"dojo/has!host-browser?dojo/tests/NodeList-manipulate",
 	"dojo/has!host-browser?dojo/tests/NodeList-data",
 	"dojo/has!host-browser?dojo/tests/uacss",
-	"dojo/has!host-browser?dojo/tests/window"
+	"dojo/has!host-browser?dojo/tests/window",
+	"dojo/has!host-browser?dojo/tests/touch"
 ], 1);

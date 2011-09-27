@@ -1,4 +1,4 @@
-define(["./kernel", "../has", "./sniff"], function(dojo, has, sniff){
+define(["./kernel", "../has", "./sniff"], function(dojo, has){
 	//	module:
 	//		dojo/_base/lang
 	//	summary:
@@ -210,7 +210,7 @@ define(["./kernel", "../has", "./sniff"], function(dojo, has, sniff){
 				// RegExp
 				return new RegExp(src);   // RegExp
 			}
-			var r, i, l, s, name;
+			var r, i, l;
 			if(lang.isArray(src)){
 				// array
 				r = [];
@@ -267,7 +267,7 @@ define(["./kernel", "../has", "./sniff"], function(dojo, has, sniff){
 			replace:replace
 		};
 
-	has("dojo-1x-base") && mixin(dojo, lang);
+	has("extend-dojo") && mixin(dojo, lang);
 	return lang;
 
 	/*=====
@@ -462,7 +462,7 @@ define(["./kernel", "../has", "./sniff"], function(dojo, has, sniff){
 	=====*/
 
 	/*=====
-	dojo.isStringisObject = function(it){
+	dojo.isObject = function(it){
 	// summary:
 	//		Returns true if it is a JavaScript object (or an Array, a Function
 	//		or null)

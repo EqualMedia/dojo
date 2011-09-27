@@ -7,11 +7,6 @@ define(["./_base/kernel", "require", "./has", "./_base/array", "./_base/lang", "
 	//		We choose to include our own plugin to leverage functionality already contained in dojo
 	//		and thereby reduce the size of the plugin compared to various loader implementations. Also, this
 	//		allows foreign AMD loaders to be used without their plugins.
-	//
-	//		CAUTION: this module may return improper results if the AMD loader does not support toAbsMid and client
-	//		code passes relative plugin resource module ids. In that case, you should consider using the i18n! plugin
-	//		that comes with your loader.
-
 	var
 		thisModule= dojo.i18n=
 			// the dojo.i18n module
@@ -70,25 +65,32 @@ define(["./_base/kernel", "require", "./has", "./_base/array", "./_base/lang", "
 			// get the root bundle which instructs which other bundles are required to contruct the localized bundle
 			require([bundlePathAndName], function(root){
 				var
-					current= cache[bundlePathAndName + "/"]= dojo.clone(root.root),
+					current= cache[bundlePathAndName + "/"]= lang.clone(root.root),
 					availableLocales= getAvailableLocales(!root._v1x && root, locale, bundlePath, bundleName);
 				require(availableLocales, function(){
 					for (var i= 1; i<availableLocales.length; i++){
-						cache[availableLocales[i]]= current= lang.mixin(dojo.clone(current), arguments[i]);
+						cache[availableLocales[i]]= current= lang.mixin(lang.clone(current), arguments[i]);
 					}
 					// target may not have been resolve (e.g., maybe only "fr" exists when "fr-ca" was requested)
 					var target= bundlePathAndName + "/" + locale;
 					cache[target]= current;
-					load && load(dojo.delegate(current));
+					load && load(lang.delegate(current));
 				});
 			});
 		},
 
-		load= function(id, require, load){
+		normalize = function(id, toAbsMid){
 			// note: id may be relative
+			var match= nlsRe.exec(id),
+				bundlePath= match[1];
+			return /^\./.test(bundlePath) ? toAbsMid(bundlePath) + "/" +  id.substring(bundlePath.length) : id;
+		};
+
+		load = function(id, require, load){
+			// note: id is always absolute
 			var
 				match= nlsRe.exec(id),
-				bundlePath= ((require.toAbsMid && require.toAbsMid(match[1])) || match[1]) + "/",
+				bundlePath= match[1] + "/",
 				bundleName= match[5] || match[4],
 				bundlePathAndName= bundlePath + bundleName,
 				localeSpecified = (match[5] && match[4]),
@@ -166,16 +168,10 @@ define(["./_base/kernel", "require", "./has", "./_base/array", "./_base/lang", "
 				callback.apply(null, results);
 			};
 
-		syncRequire.toAbsMid= function(mid){
-			return require.toAbsMid(mid);
-		};
-
 		thisModule.getLocalization= function(moduleName, bundleName, locale){
-			var
-				result,
-				l10nName= getL10nName(moduleName, bundleName, locale).substring(10),
-				isXd = require.isXdUrl(require.toUrl(l10nName + ".js"));
-			load(l10nName, isXd ? require : syncRequire, function(result_){ result= result_; });
+			var result,
+				l10nName= getL10nName(moduleName, bundleName, locale).substring(10);
+			load(l10nName, (has("dojo-sync-loader") && !require.isXdUrl(require.toUrl(l10nName + ".js")) ? syncRequire : require), function(result_){ result= result_; });
 			return result;
 		};
 
@@ -188,11 +184,12 @@ define(["./_base/kernel", "require", "./has", "./_base/array", "./_base/lang", "
 		};
 	}
 
-	thisModule.load= load;
-
-	thisModule.cache= function(mid, value){
-		cache[mid]= value;
-	};
-
-	return thisModule;
+	return lang.mixin(thisModule, {
+		dynamic:true,
+		normalize:normalize,
+		load:load,
+		cache:function(mid, value){
+			cache[mid] = value;
+		}
+	});
 });

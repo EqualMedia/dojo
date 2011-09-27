@@ -103,6 +103,13 @@ define(["../has", "./config", "require", "module"], function(has, config, requir
 		}
 	};
 
+
+	// If has("extend-dojo") is truthy, then as a dojo module is defined it should push it's definitions
+	// into the dojo object, and conversely. In 2.0, it will likely be unusual to augment another object
+	// as a result of defining a module. This has feature gives a way to force 2.0 behavior as the code
+	// is migrated. Absent specific advice otherwise, set extend-dojo to truthy.
+	has.add("extend-dojo", 1);
+
 	if(has("dojo-loader")){
 		dojo.eval = require.eval;
 	}else{
@@ -156,7 +163,7 @@ define(["../has", "./config", "require", "module"], function(has, config, requir
 
 	has.add("dojo-debug-messages",
 		// include dojo.deprecated/dojo.experimental implementations
-		1
+		!!config.isDebug
 	);
 	if(has("dojo-debug-messages")){
 		dojo.deprecated = function(/*String*/ behaviour, /*String?*/ extra, /*String?*/ removal){
@@ -199,10 +206,13 @@ define(["../has", "./config", "require", "module"], function(has, config, requir
 			//	| dojo.experimental("dojo.data.Result");
 			//	example:
 			//	| dojo.experimental("dojo.weather.toKelvin()", "PENDING approval from NOAA");
+
 			var message = "EXPERIMENTAL: " + moduleName + " -- APIs subject to change without notice.";
 			if(extra){ message += " " + extra; }
 			console.warn(message);
 		};
+	}else{
+		dojo.deprecated = dojo.experimental =  function(){};
 	}
 
 	has.add("dojo-modulePaths",
@@ -269,6 +279,8 @@ define(["../has", "./config", "require", "module"], function(has, config, requir
 			return result;
 		};
 	}
+
+	dojo._hasResource = {}; // for backward compatibility with layers built with 1.6 tooling
 
 	return dojo;
 });

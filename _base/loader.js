@@ -1,4 +1,4 @@
-define(["./kernel", "../has", "require", "module", "./json", "./lang", "./array", "../has!host-browser?./xhr"], function(dojo, has, require, thisModule, json, lang, array, xhr) {
+define(["./kernel", "../has", "require", "module", "./json", "./lang", "./array"], function(dojo, has, require, thisModule, json, lang, array) {
 	// module:
 	//		dojo/_base/lader
 	// summary:
@@ -44,11 +44,8 @@ define(["./kernel", "../has", "require", "module", "./json", "./lang", "./array"
 
 		dojoRequireSet = {},
 
-		hotDojoRequireResources = {},
-
 		dojoRequirePlugin = function(mid, require, loaded){
-			var referenceModule = require.module,
-				count = 1,
+			var count = 1,
 				arrived = function(){
 					if(--count==0){
 						loaded(1);
@@ -56,7 +53,7 @@ define(["./kernel", "../has", "require", "module", "./json", "./lang", "./array"
 				};
 
 			// if this is a dojo/require! in a deps vector for a define, then annotate the reference module
-			// to help with the checkDojoRequirePlugin() algorithm; if it's in a context requrie in a
+			// to help with the checkDojoRequirePlugin() algorithm; if it's in a context require in a
 			// dojo/loadInit!, then dojoRequireMids is not initialized since that pseudo module is never
 			// seen in checkDojoRequirePlugin
 			var target= "dojo/require!" + require.module.mid + "!" + mid,
@@ -398,16 +395,13 @@ define(["./kernel", "../has", "require", "module", "./json", "./lang", "./array"
 			    "define(" + dojo.toJson(names.concat(["dojo/loadInit!"+id])) + ", function(" + names.join(",") + "){\n" + extractResult[0] + "});";
 		},
 
-		loaderVars = require.initSyncLoader({load:dojoRequirePlugin}, checkDojoRequirePlugin, transformToAmd, isXdUrl),
+		loaderVars = require.initSyncLoader(dojoRequirePlugin, checkDojoRequirePlugin, transformToAmd, isXdUrl),
 
 		sync =
 			loaderVars.sync,
 
 		xd =
 			loaderVars.xd,
-
-		requested =
-			loaderVars.requested,
 
 		arrived =
 			loaderVars.arrived,
@@ -429,9 +423,6 @@ define(["./kernel", "../has", "require", "module", "./json", "./lang", "./array"
 
 		execQ =
 			loaderVars.execQ,
-
-		fixupUrl =
-			loaderVars.fixupUrl,
 
 		getModule =
 			loaderVars.getModule,
@@ -588,7 +579,9 @@ define(["./kernel", "../has", "require", "module", "./json", "./lang", "./array"
 			if(module.executed!==executed && module.injected===arrived){
 				// the module was already here before injectModule was called probably finishing up a xdomain
 				// load, but maybe a module given to the loader directly rather than having the loader retrieve it
+				loaderVars.holdIdle();
 				execModule(module);
+				loaderVars.releaseIdle();
 			}
 			if(module.executed){
 				return module.result;
@@ -611,9 +604,9 @@ define(["./kernel", "../has", "require", "module", "./json", "./lang", "./array"
 				execQ.push(module);
 			}
 			return undefined;
-		};
+		}
 
-		var result = doRequire(moduleName);
+		var result = doRequire(moduleName, omitModuleCheck);
 		if(has("config-publishRequireResult") && !lang.exists(moduleName) && result!==undefined){
 			lang.setObject(moduleName, result);
 		}

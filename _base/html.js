@@ -2,7 +2,7 @@ define(["./kernel", "../dom", "../dom-style", "../dom-attr", "../dom-prop", "../
 	// module:
 	//		dojo/dom
 	// summary:
-	//		This module is a stub fot the core dojo DOM API.
+	//		This module is a stub for the core dojo DOM API.
 
 	// mix-in dom
 	dojo.byId = dom.byId;
@@ -114,8 +114,8 @@ define(["./kernel", "../dom", "../dom-style", "../dom-attr", "../dom-prop", "../
 	dojo._toDom = dojo.toDom = ctr.toDom;
 	dojo.place = ctr.place;
 	dojo.create = ctr.create;
-	dojo.empty = ctr.empty;
-	dojo._destroyElement = dojo.destroy = ctr.destroy;
+	dojo.empty = function(node){ ctr.empty(node); };
+	dojo._destroyElement = dojo.destroy = function(node){ ctr.destroy(node); };
 
 	// mix-in dom-geometry
 	dojo._getPadExtents = dojo.getPadExtents = geom.getPadExtents;
@@ -124,9 +124,9 @@ define(["./kernel", "../dom", "../dom-style", "../dom-attr", "../dom-prop", "../
 	dojo._getMarginExtents = dojo.getMarginExtents = geom.getMarginExtents;
 	dojo._getMarginSize = dojo.getMarginSize = geom.getMarginSize;
 	dojo._getMarginBox = dojo.getMarginBox = geom.getMarginBox;
-	dojo._setMarginBox = dojo.setMarginBox = geom.setMarginBox;
+	dojo.setMarginBox = geom.setMarginBox;
 	dojo._getContentBox = dojo.getContentBox = geom.getContentBox;
-	dojo._setContentSize = dojo.setContentSize = geom.setContentSize;
+	dojo.setContentSize = geom.setContentSize;
 	dojo._isBodyLtr = dojo.isBodyLtr = geom.isBodyLtr;
 	dojo._docScroll = dojo.docScroll = geom.docScroll;
 	dojo._getIeDocumentElementOffset = dojo.getIeDocumentElementOffset = geom.getIeDocumentElementOffset;
@@ -159,7 +159,7 @@ define(["./kernel", "../dom", "../dom-style", "../dom-attr", "../dom-prop", "../
 		//		Set a node's margin box to the size of another node
 		//	|	var box = dojo.marginBox("someNodeId");
 		//	|	dojo.marginBox("someOtherNode", box);
-		return box ? geom.setMarginBox(node, box.l, box.t, box.w, box.h) : geom.getMarginBox(node); // Object
+		return box ? geom.setMarginBox(node, box) : geom.getMarginBox(node); // Object
 	};
 
 	dojo.contentBox = function contentBox(/*DomNode|String*/node, /*Object?*/box){
@@ -183,7 +183,7 @@ define(["./kernel", "../dom", "../dom-style", "../dom-attr", "../dom-prop", "../
 		//		update/set the content box for node. Box is an object in the
 		//		above format, but only w (width) and h (height) are supported.
 		//		All properties are optional if passed.
-		return box ? geom.setContentSize(node, box.w, box.h) : geom.getContentBox(node); // Object
+		return box ? geom.setContentSize(node, box) : geom.getContentBox(node); // Object
 	};
 
 	dojo.coords = function(/*DomNode|String*/node, /*Boolean?*/includeScroll){
@@ -207,7 +207,7 @@ define(["./kernel", "../dom", "../dom-style", "../dom-attr", "../dom-prop", "../
 		var abs = geom.position(node, includeScroll);
 		mb.x = abs.x;
 		mb.y = abs.y;
-		return mb;
+		return mb;	// Object
 	};
 
 	// mix-in dom-prop
@@ -332,6 +332,9 @@ define(["./kernel", "../dom", "../dom-style", "../dom-attr", "../dom-prop", "../
 		//		cross-browser concerns.  When setting a pixel value,
 		//		be sure to include "px" in the value. For instance, top: "200px".
 		//		Otherwise, in some cases, some browsers will not apply the style.
+		// returns:
+		//		when used as a getter, return the computed style of the node if passing in an ID or node,
+		//		or return the normalized, computed value for the property when passing in a node and a style property
 		// example:
 		//		Passing only an ID or node returns the computed style object of
 		//		the node:

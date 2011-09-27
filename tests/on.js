@@ -2,15 +2,16 @@ dojo.provide("dojo.tests.on");
 
 var on = dojo.require("dojo.on");
 var has = dojo.require("dojo.has");
+var topic = dojo.require("dojo.topic");
+var Evented = dojo.require("dojo.Evented");
 doh.register("tests.on",
 	[
 		function object(t){
 			var order = [];
-			var obj = {
-				oncustom: function(event){
-					order.push(event.a);
-					return event.a+1;
-				}
+			var obj = new dojo.Evented();
+			obj.oncustom = function(event){
+				order.push(event.a);
+				return event.a+1;
 			};
 			var signal = on.pausable(obj, "custom", function(event){
 				order.push(0);
@@ -47,15 +48,14 @@ doh.register("tests.on",
 		},
 		function once(t){
 			var order = [];
-			var obj = {
-				oncustom: function(event){
-					order.push(event.a);
-				}
-			};
+			var obj = new dojo.Evented();
+			obj.on("custom", function(event){
+				order.push(event.a);
+			});
 			var signal = on.once(obj, "custom", function(event){
 				order.push(1);
 			});
-			obj.oncustom({a:0});
+			obj.emit("custom",{a:0});
 			obj.oncustom({a:2}); // should call original method, but not listener
 			t.is(order, [0,1,2]);
 		},
@@ -139,6 +139,28 @@ doh.register("tests.on",
 			}
 			t.is(order, [0, 1, 2, 3, 4, 5, 6, 7, 8]);
 		},
+/*
+ This only works if the test page has the focus, so you can enable if you want to test focus functionality and allow the test page to have focus  
+ 		function focus(t){
+			var div = document.body.appendChild(document.createElement("div"));
+			var input = div.appendChild(document.createElement("input"));
+			var order = [];
+			var signal = on(div,"input:focusin", function(event){
+				order.push('in');
+			});
+			var signal = on(div,"input:focusout", function(event){
+				order.push('out');
+			});
+			var otherInput = document.body.appendChild(document.createElement("input"));
+			input.focus();
+			otherInput.focus();
+			d = new doh.Deferred();
+			setTimeout(function(){
+				t.is(['in', 'out'], order);
+				d.callback(true);
+			}, 1);
+			return d;
+		},*/
 		function extensionEvent(t){
 			var div = document.body.appendChild(document.createElement("div"));
 			var span = div.appendChild(document.createElement("span"));
@@ -170,8 +192,8 @@ doh.register("tests.on",
 			}));
 			t.is(order, [0, 1, 2, 3]);
 		},
-		function Evented(t){
-			var MyClass = dojo.declare([on.Evented],{
+		function testEvented(t){
+			var MyClass = dojo.declare([Evented],{
 
 			});
 			var order = [];
@@ -184,12 +206,12 @@ doh.register("tests.on",
 		},
 		function pubsub(t){
 			var fooCount = 0;
-			on("/test/foo", function(event, secondArg){
+			topic.on("/test/foo", function(event, secondArg){
 				t.is("value", event.foo);
 				t.is("second", secondArg);
 				fooCount++;
 			});
-			on.emit("/test/foo", {foo: "value"}, "second");
+			topic.emit("/test/foo", {foo: "value"}, "second");
 			t.is(1, fooCount);
 		},
 		function touch(t){

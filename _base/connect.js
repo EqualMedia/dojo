@@ -1,4 +1,4 @@
-define(["./kernel", "../on", "../aspect", "./event", "../mouse", "./sniff", "./lang", "../keys"], function(kernel, on, aspect, eventModule, mouse, has, lang){
+define(["./kernel", "../on", "../topic", "../aspect", "./event", "../mouse", "./sniff", "./lang", "../keys"], function(kernel, on, hub, aspect, eventModule, mouse, has, lang){
 //  module:
 //    dojo/_base/connect
 //  summary:
@@ -19,12 +19,14 @@ has.add("events-keypress-typed", function(){ // keypresses should only occur a p
 });
 
 function connect_(obj, event, context, method, dontFix){
-	if(typeof event == "string" && event.substring(0, 2) == "on"){
-		event = event.substring(2);
-	}else if(!obj || !(obj.addEventListener || obj.attachEvent)){
+	method = lang.hitch(context, method);
+	if(!obj || !(obj.addEventListener || obj.attachEvent)){
 		// it is a not a DOM node and we are using the dojo.connect style of treating a
 		// method like an event, must go right to aspect
-		return aspect.after(obj || kernel.global, event, lang.hitch(context, method), true);
+		return aspect.after(obj || kernel.global, event, method, true);
+	}
+	if(typeof event == "string" && event.substring(0, 2) == "on"){
+		event = event.substring(2);
 	}
 	if(!obj){
 		obj = kernel.global;
@@ -43,8 +45,8 @@ function connect_(obj, event, context, method, dontFix){
 				break;
 		}
 	}
-	return on(obj, event, lang.hitch(context, method), dontFix);
-};
+	return on(obj, event, method, dontFix);
+}
 
 var _punctMap = {
 	106:42,
@@ -184,12 +186,11 @@ var connect = {
 	},
 
 	subscribe:function(topic, context, method){
-		return on(topic, lang.hitch(context, method));
+		return hub.on(topic, lang.hitch(context, method));
 	},
 
 	publish:function(topic, args){
-		topic = "on" + topic;
-		on[topic] && on[topic].apply(this, args || []);
+		return hub.emit.apply(hub, [topic].concat(args));
 	},
 
 	connectPublisher:function(topic, obj, event){
@@ -203,7 +204,7 @@ var connect = {
 };
 connect.unsubscribe = connect.disconnect;
 
-has("dojo-1x-base") && lang.mixin(kernel, connect);
+has("extend-dojo") && lang.mixin(kernel, connect);
 return connect;
 
 /*=====
