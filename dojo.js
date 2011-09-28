@@ -413,7 +413,7 @@
 					var match = p.match(/^url\:(.+)/);
 					if(match){
 						cache[toUrl(match[1], referenceModule)] =  pendingCacheInsert[p];
-					}else{
+					}else if(p!="*noref"){
 						cache[getModuleInfo(p, referenceModule).mid] = pendingCacheInsert[p];
 					}
 				}
@@ -540,6 +540,9 @@
 				if(config.cache){
 					consumePendingCacheInsert();
 					pendingCacheInsert = config.cache;
+					if(config.cache["*noref"]){
+						consumePendingCacheInsert();
+					}
 				}
 
 				signal("config", [config, req.rawConfig]);
@@ -738,7 +741,7 @@
 			module.injected = requested;
 			waiting[module.mid] = 1;
 			if(module.url){
-				waiting[module.url] = 1;
+				waiting[module.url] = module.pack || 1;
 			}
 		},
 
@@ -1226,7 +1229,7 @@
 
 				var mid = module.mid,
 					url = module.url;
-				if(module.executed || module.injected || waiting[mid] || (module.url && waiting[module.url])){
+				if(module.executed || module.injected || waiting[mid] || (module.url && ((module.pack && waiting[module.url]===module.pack) || waiting[module.url]==1))){
 					return;
 				}
 
