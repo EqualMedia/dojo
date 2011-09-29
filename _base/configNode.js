@@ -47,7 +47,6 @@ exports.config = function(config){
 	var nodeConfig = {
 		baseUrl: __dirname.match(/(.+)[\/\\]_base$/)[1],
 		commandLineArgs:args,
-		deps:deps,
 		timeout:0,
 
 		// TODO: really get the locale
@@ -83,5 +82,8 @@ exports.config = function(config){
 	};
 	for(p in nodeConfig){
 		config[p] = nodeConfig[p];
+	}
+	if(deps.length){
+	  config.deps = deps;
 	}
 };
