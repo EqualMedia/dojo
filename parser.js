@@ -1,7 +1,7 @@
 define(
-	["./_base/kernel", "./_base/lang", "./_base/array", "./_base/html", "./_base/window", "./_base/url",
+	["./_base/kernel", "./_base/lang", "./_base/array", "./_base/config", "./_base/html", "./_base/window", "./_base/url",
 		"./_base/json", "./aspect", "./date/stamp", "./query", "./on", "./ready"],
-	function(dojo, dlang, darray, dhtml, dwindow, _Url, djson, aspect, dates, query, don){
+	function(dojo, dlang, darray, config, dhtml, dwindow, _Url, djson, aspect, dates, query, don, ready){
 
 // module:
 //		dojo/parser
@@ -129,7 +129,7 @@ dojo.parser = new function(){
 				ctor = _ctorMap[type] || (_ctorMap[type] = dlang.getObject(type)),
 				proto = ctor && ctor.prototype;
 			if(!ctor){
-				throw new Error("Could not load class '" + type);
+				throw new Error("Could not load class '" + type + "'");
 			}
 
 			// Setup hash to hold parameter settings for this widget.	Start with the parameter
@@ -586,8 +586,8 @@ dojo.parser = new function(){
 
 //Register the parser callback. It should be the first callback
 //after the a11y test.
-if(dojo.config.parseOnLoad){
-	dojo.ready(100, dojo.parser, "parse");
+if(config.parseOnLoad){
+	ready(100, dojo.parser, "parse");
 }
 
 return dojo.parser;

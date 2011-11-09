@@ -1,4 +1,4 @@
-define(["./kernel", "./lang"], function(dojo, lang){
+define(["./kernel", "./config", "./lang"], function(dojo, config, lang){
 	// module:
 	//		dojo/_base/Deferred
 	// summary:
@@ -174,7 +174,7 @@ define(["./kernel", "./lang"], function(dojo, lang){
 					try{
 						var newResult = func(result);
 						if (newResult && typeof newResult.then === "function"){
-							newResult.then(lang.hitch(listener.deferred, "resolve"), lang.hitch(listener.deferred, "reject"));
+							newResult.then(lang.hitch(listener.deferred, "resolve"), lang.hitch(listener.deferred, "reject"), lang.hitch(listener.deferred, "progress"));
 							continue;
 						}
 						var unchanged = mutated && newResult === undefined;
@@ -213,7 +213,7 @@ define(["./kernel", "./lang"], function(dojo, lang){
 			complete(error);
 			this.results = [null, error];
 			if(!error || error.log !== false){
-				(dojo.config.deferredOnError || function(x){ console.error(x); })(error);
+				(config.deferredOnError || function(x){ console.error(x); })(error);
 			}
 		};
 		// call progress to provide updates on the progress on the completion of the promise
@@ -359,7 +359,7 @@ define(["./kernel", "./lang"], function(dojo, lang){
 		if(promiseOrValue && typeof promiseOrValue.then === "function"){
 			return promiseOrValue.then(callback, errback, progressHandler);
 		}
-		return callback(promiseOrValue);	// Promise
+		return callback ? callback(promiseOrValue) : promiseOrValue;	// Promise
 	};
 
 	return dojo.Deferred;
