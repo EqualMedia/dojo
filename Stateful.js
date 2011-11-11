@@ -65,7 +65,7 @@ return declare("dojo.Stateful", null, {
 		//	This is equivalent to calling set(foo, "Howdy") and set(bar, 3)
 		if(typeof name === "object"){
 			for(var x in name){
-				this.set(x, name[x]);
+				Object.hasOwnProperty.call(name, x) && this.set(x, name[x]);
 			}
 			return this;
 		}
