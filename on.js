@@ -105,7 +105,17 @@ define(["./has!dom-addeventlistener?:./aspect", "./_base/kernel", "./has"], func
 		return addListener(target, type, listener, dontFix, matchesTarget);
 	};
 	var touchEvents = /^touch/;
-	function addListener(target, type, listener, dontFix, matchesTarget){
+	function addListener(target, type, _listener, dontFix, matchesTarget){
+		var listener = _listener;
+		if(typeof on.handleError === "function"){
+			listener = function(){
+				try{
+					return _listener.apply(this, arguments);
+				}catch(err){
+					on.handleError(err);
+				}
+			};
+		}
 		// event delegation:
 		var selector = type.match(/(.*):(.*)/);
 		// if we have a selector:event, the last one is interpreted as an event, and we use event delegation
