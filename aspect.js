@@ -81,7 +81,9 @@ define([], function(){
 					var args = arguments;
 					var before = dispatcher.before;
 					while(before){
-						args = before.advice.apply(this, args) || args;
+						if(before.advice){
+							args = before.advice.apply(this, args) || args;
+						}
 						before = before.next;
 					}
 					// around advice
