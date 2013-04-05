@@ -27,18 +27,22 @@ define([], function(){
 			// create the remove handler
 			signal = {
 				remove: function(){
-					var previous = signal.previous;
-					var next = signal.next;
-					if(!next && !previous){
-						delete dispatcher[type];
-					}else{
-						if(previous){
-							previous.next = next;
+					if(this.advice){
+						// remove the advice to signal that this signal has been removed
+						this.advice = null;
+						var previous = signal.previous;
+						var next = signal.next;
+						if(!next && !previous){
+							delete dispatcher[type];
 						}else{
-							dispatcher[type] = next;
-						}
-						if(next){
-							next.previous = previous;
+							if(previous){
+								previous.next = next;
+							}else{
+								dispatcher[type] = next;
+							}
+							if(next){
+								next.previous = previous;
+							}
 						}
 					}
 				},
@@ -50,11 +54,8 @@ define([], function(){
 		if(previous && !around){
 			if(type == "after"){
 				// add the listener to the end of the list
-				var next = previous;
-				while(next){
-					previous = next;
-					next = next.next;
-				}
+				// note that we had to change this loop a little bit to workaround a bizarre IE10 JIT bug 
+				while(previous.next && (previous = previous.next)){}
 				previous.next = signal;
 				signal.previous = previous;
 			}else if(type == "before"){
@@ -80,7 +81,9 @@ define([], function(){
 					var args = arguments;
 					var before = dispatcher.before;
 					while(before){
-						args = before.advice.apply(this, args) || args;
+						if(before.advice){
+							args = before.advice.apply(this, args) || args;
+						}
 						before = before.next;
 					}
 					// around advice
