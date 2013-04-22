@@ -4,6 +4,10 @@ define(["../_base/lang"], function(lang){
 
 		var ErrorCtor = function(message){
 			if(base === Error){
+				if(!message){
+					message = "[" + this.name + "]";
+				}
+
 				if(Error.captureStackTrace){
 					Error.captureStackTrace(this, ErrorCtor);
 				}
